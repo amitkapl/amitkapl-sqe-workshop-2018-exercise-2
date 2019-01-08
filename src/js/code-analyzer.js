@@ -18,7 +18,7 @@ let typeToHandlerMapping = {
     'Literal': (json,env) => {return [json,env];},
     'MemberExpression': substituteCheckAndChange,
     // 'UnaryExpression': substituteUnaryExpression,
-    // 'UpdateExpression ': substituteUpdateExpression,
+    'UpdateExpression': substituteUpdateExpression,
     'AssignmentExpression': substituteAssignmentExpression
 };
 
@@ -57,8 +57,19 @@ function substituteBinaryExpression(json, env, isInFunction) {
     return [json, env];
 }
 
+function substituteUpdateExpression(json, env, isInFunction) {
+    let x = json.argument.name;
+    if (json.operator === '++')
+        x += '=' + x + '+1;';
+    else
+        x += '=' + x + '-1;';
+    let temp = typeHandle(parseCode(x).body[0].expression, env, isInFunction);
+    json = temp[0];
+    return temp;
+}
+
 function substituteAssignmentExpression(json, env, isInFunction) {
-    json.right = typeHandle(json.right,env, isInFunction)[0];
+    json.right = typeHandle(json.right ,env, isInFunction)[0];
     let temp = extendEnv(env, json.left, json.right);
     env = temp[1];
     if(temp[0] === true)
@@ -218,11 +229,21 @@ function convertInputToEnvJSON(input){
     return dict;
 }
 
+//
+// function makeEnv(code) {
+//     let params = code.body[0].params;
+//     let env = []
+//     for (let i=0; i<params.length; i++) {
+//         env += {isParam: true, variable: params[i].name, value: params[i].name};
+//     }
+//     return env;
+// }
+
 function paintCode(code, input) {
 
     let substitutedCodeInput;
     if(input === '')
-        substitutedCodeInput = code;
+        substitutedCodeInput = code;// substitutedCodeInput = substitute(code, makeEnv(code), false)[0];
     else
         substitutedCodeInput = substitute(code,convertInputToEnvJSON(input), false)[0];
     let codeParsedWithLine = esprima.parseScript(revertParseCode(substitutedCodeInput), {loc:true});

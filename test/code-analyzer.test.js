@@ -169,4 +169,28 @@ describe('The javascript parser', () => {
             '}<br>\n'
         );
     });
+
+    it('UpdateExpression ++', () => {
+        check(
+            'function foo(x){\n' +
+            '    x++;\n' +
+            '}\n',
+            '{' +
+            '"x":"1"' +
+            '}',
+            'function foo(x) {<br>\n    x = 1 + 1;<br>\n}<br>\n'
+        );
+    });
+
+    it('UpdateExpression --', () => {
+        check(
+            'function foo(x){\n' +
+            '    x--;\n' +
+            '}\n',
+            '{' +
+            '"x":"1"' +
+            '}',
+            'function foo(x) {<br>\n    x = 1 - 1;<br>\n}<br>\n'
+        );
+    });
 });
